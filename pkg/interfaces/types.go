@@ -40,3 +40,25 @@ type Reconcile interface {
 	// Getter function for reconcile Scheme
 	GetScheme() *runtime.Scheme
 }
+
+// Instance is the interface for Custom Objects. This interface can
+// be used to pass around Custom objects. This interface is the
+// superset of Object interface defined earlier.
+//
+// Note however that by default, Objects do not implement metav1.Type
+// which is required by this interface. Add following functions to
+// implement metav1.Type
+//
+//     func (obj *Object) GetAPIVersion() string { return obj.APIVersion }
+//     func (obj *Object) SetAPIVersion(version string) { obj.APIVersion = version }
+//     func (obj *Object) GetKind() string { return obj.Kind }
+//     func (obj *Object) SetKind(kind string) { obj.Kind = kind }
+//
+// Important thing about this interface is that pointer to Custom
+// Obects implement this interface so beware while using. The custom
+// objects must implement this interface to use Operatorlib functions.
+type Instance interface {
+	Object
+	metav1.Type
+	schema.ObjectKind
+}
