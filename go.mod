@@ -4,6 +4,7 @@ go 1.12
 
 require (
 	github.com/gogo/protobuf v1.2.1 // indirect
+	github.com/golang/mock v1.3.1
 	github.com/json-iterator/go v1.1.7 // indirect
 	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/pkg/errors v0.8.1
