@@ -118,7 +118,7 @@ func delete(c Conf) (r reconcile.Result, err error) {
 	client := c.Reconcile.GetClient()
 
 	err = client.Delete(context.TODO(), c.Object)
-	if !kerrors.IsNotFound(err) {
+	if err != nil && !kerrors.IsNotFound(err) {
 		return reconcile.Result{}, errors.Wrap(err, "failed to delete the object in cluster")
 	}
 
