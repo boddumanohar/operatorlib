@@ -3,6 +3,8 @@
 [![Godoc Reference](https://godoc.org/github.com/ankitrgadiya/operatorlib?status.svg)](https://godoc.org/github.com/ankitrgadiya/operatorlib)
 [![Go Report Card](https://goreportcard.com/badge/github.com/ankitrgadiya/operatorlib)](https://goreportcard.com/report/github.com/ankitrgadiya/operatorlib)
 [![Build Status](https://travis-ci.com/ankitrgadiya/operatorlib.svg?branch=master)](https://travis-ci.com/ankitrgadiya/operatorlib)
+[![codecov](https://codecov.io/gh/ankitrgadiya/operatorlib/branch/master/graph/badge.svg)](https://codecov.io/gh/ankitrgadiya/operatorlib)
+[![Maintainability](https://api.codeclimate.com/v1/badges/2c6f0689231cab164aad/maintainability)](https://codeclimate.com/github/ankitrgadiya/operatorlib/maintainability)
 
 While working on many Kubernetes operators, I realised that a lot of
 code is repetative across operators. Generating, creating, updating,
