@@ -40,6 +40,10 @@ type Conf struct {
 	// Object is the pointer to the object on which operation is to be
 	// performed.
 	Object interfaces.Object
+	// ExistingObject is the pointer to the empty struct of Object
+	// which is used to fetch the existing object from cluster
+	// TODO: Figure out a way to avoid this
+	ExistingObject interfaces.Object
 	// OwnerReference is the flag used to by Create operation to
 	// determine if owner reference needs to be set on the created
 	// object.
