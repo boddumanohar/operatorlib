@@ -7,6 +7,10 @@ go:
 env:
   - GO111MODULE=on
 
+cache:
+  directories:
+    - $GOPATH/pkg/mod
+
 script:
   - go test ./... -v -coverprofile=coverage.txt -covermode=atomic
   - go tool cover -func=coverage.txt
