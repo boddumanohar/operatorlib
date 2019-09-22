@@ -2,9 +2,6 @@ package operation
 
 import (
 	"context"
-	"reflect"
-
-	"argp.in/go/operatorlib/pkg/interfaces"
 
 	"github.com/pkg/errors"
 	kerrors "k8s.io/apimachinery/pkg/api/errors"
@@ -61,23 +58,27 @@ func Update(c Conf) (reconcile.Result, error) {
 func update(c Conf) (r reconcile.Result, err error) {
 	client := c.Reconcile.GetClient()
 
-	existingObject, ok := reflect.New(reflect.TypeOf(c.Object)).Interface().(interfaces.Object)
-	if !ok {
-		return reconcile.Result{}, errors.New("failed to create new instance of the object type")
-	}
+	// TODO: Fix this (if possible) to automatically figure out the
+	// Kind and initialize the empty struct and point to that. For now
+	// this returns a nil pointer of the Object's Kind. However,
+	// client functions require pointer to empty struct.
+	// existingObject, ok := reflect.New(reflect.TypeOf(c.Object)).Elem().Interface().(interfaces.Object)
+	// if !ok {
+	//	return reconcile.Result{}, errors.New("failed to create new instance of the object type")
+	// }
 
-	err = client.Get(context.TODO(), types.NamespacedName{}, existingObject)
+	err = client.Get(context.TODO(), types.NamespacedName{Name: c.Object.GetName(), Namespace: c.Object.GetNamespace()}, c.ExistingObject)
 	if err != nil {
 		return reconcile.Result{}, errors.Wrap(err, "failed to get the existing object from cluster")
 	}
 
-	requireUpdate, err := c.MaybeUpdateFunc(existingObject, c.Object)
+	requireUpdate, err := c.MaybeUpdateFunc(c.ExistingObject, c.Object)
 	if err != nil {
 		return reconcile.Result{}, errors.Wrap(err, "failed to update the object")
 	}
 
 	if requireUpdate {
-		err = client.Update(context.TODO(), existingObject)
+		err = client.Update(context.TODO(), c.ExistingObject)
 		if err != nil {
 			return reconcile.Result{}, errors.Wrap(err, "failed to update the object in cluster")
 		}
