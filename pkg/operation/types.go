@@ -1,7 +1,7 @@
 package operation
 
 import (
-	"argp.in/go/operatorlib/pkg/interfaces"
+	"github.com/ankitrgadiya/operatorlib/pkg/interfaces"
 
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
