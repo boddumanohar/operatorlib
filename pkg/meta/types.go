@@ -42,4 +42,7 @@ type Conf struct {
 	// Object. The generated string slice populates the Finalizers in
 	// ObjectMeta
 	GenFinalizersFunc
+	// AppendLabels is used to determine if labels from Owner Object
+	// are to be inherited.
+	AppendLabels bool
 }
