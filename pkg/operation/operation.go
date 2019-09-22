@@ -98,11 +98,15 @@ func update(c Conf) (r reconcile.Result, err error) {
 // "IsAlreadyExists" error and tries to update the object.
 func CreateOrUpdate(c Conf) (r reconcile.Result, err error) {
 	r, err = create(c)
-	if err != nil && !kerrors.IsAlreadyExists(err) {
-		return r, err
+	if err != nil && !kerrors.IsAlreadyExists(errors.Cause(err)) {
+		return r, errors.Wrap(err, "adsadA")
 	}
 
-	return update(c)
+	if kerrors.IsAlreadyExists(errors.Cause(err)) {
+		return update(c)
+	}
+
+	return r, nil
 }
 
 // Delete is a generic delete function for any Kubernetes Object. This
