@@ -5,9 +5,9 @@ import (
 	"errors"
 	"testing"
 
-	"argp.in/go/operatorlib/pkg/interfaces"
-	"argp.in/go/operatorlib/pkg/interfaces/mocks"
-	"argp.in/go/operatorlib/pkg/operation"
+	"github.com/ankitrgadiya/operatorlib/pkg/interfaces"
+	"github.com/ankitrgadiya/operatorlib/pkg/interfaces/mocks"
+	"github.com/ankitrgadiya/operatorlib/pkg/operation"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"

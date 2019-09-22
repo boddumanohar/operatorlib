@@ -1,4 +1,4 @@
-module argp.in/go/operatorlib
+module github.com/ankitrgadiya/operatorlib
 
 go 1.12
 
