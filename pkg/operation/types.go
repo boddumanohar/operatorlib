@@ -11,7 +11,7 @@ import (
 // there own update functions and pass them. The function is supposed
 // to update the first argument and return true if update is required
 // or else false. The function can return error if one occurs during
-// comparision.
+// comparison.
 type MaybeUpdateFunc func(interfaces.Object, interfaces.Object) (bool, error)
 
 // HookFunc is the function type which is used by various hooks. The
