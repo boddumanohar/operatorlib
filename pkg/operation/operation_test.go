@@ -384,6 +384,7 @@ func TestUpdate(t *testing.T) {
 
 			result := &corev1.ConfigMap{}
 			err = client.Get(context.Background(), types.NamespacedName{Name: "test-existing-configmap", Namespace: "test"}, result)
+			assert.NoError(t, err)
 			assert.Equal(t, result.Data, object.Data)
 		})
 		t.Run("update configmap data with after update function fails", func(t *testing.T) {
@@ -419,6 +420,7 @@ func TestUpdate(t *testing.T) {
 
 			result := &corev1.ConfigMap{}
 			err = client.Get(context.Background(), types.NamespacedName{Name: "test-existing-configmap", Namespace: "test"}, result)
+			assert.NoError(t, err)
 			assert.Equal(t, result.Data, object.Data)
 		})
 		t.Run("update configmap data with after update function", func(t *testing.T) {
@@ -454,6 +456,7 @@ func TestUpdate(t *testing.T) {
 
 			result := &corev1.ConfigMap{}
 			err = client.Get(context.Background(), types.NamespacedName{Name: "test-existing-configmap", Namespace: "test"}, result)
+			assert.NoError(t, err)
 			assert.Equal(t, result.Data, object.Data)
 		})
 	})
