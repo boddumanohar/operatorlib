@@ -115,7 +115,7 @@ func CreateOrUpdate(c Conf) (r reconcile.Result, err error) {
 // Conf. This is a lower-level function which is supposed to be used
 // by other Kubernetes Objects. This can also be used to delete any
 // Custom Objects (or unsupported Objects).
-func Delete(c Conf) (r reconcile.Result, err error) {
+func Delete(c Conf) (reconcile.Result, error) {
 	return delete(c)
 }
 
