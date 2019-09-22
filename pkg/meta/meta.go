@@ -20,7 +20,7 @@ func GenerateObjectMeta(c Conf) (om *metav1.ObjectMeta, err error) {
 	}
 
 	if c.AppendLabels {
-		err = mergo.Merge(labels, c.Instance.GetLabels())
+		err = mergo.Merge(&labels, c.Instance.GetLabels())
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to append labels from owner object")
 		}
