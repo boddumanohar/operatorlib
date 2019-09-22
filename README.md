@@ -1,5 +1,9 @@
 # Operator Library
 
+[![Godoc Reference](https://godoc.org/github.com/ankitrgadiya/operatorlib?status.svg)](https://godoc.org/github.com/ankitrgadiya/operatorlib)
+[![Go Report Card](https://goreportcard.com/badge/github.com/ankitrgadiya/operatorlib)](https://goreportcard.com/report/github.com/ankitrgadiya/operatorlib)
+[![Build Status](https://travis-ci.com/ankitrgadiya/operatorlib.svg?branch=master)](https://travis-ci.com/ankitrgadiya/operatorlib)
+
 While working on many Kubernetes operators, I realised that a lot of
 code is repetative across operators. Generating, creating, updating,
 deleting objects is a common thing and yet the code is being repeated
