@@ -138,6 +138,39 @@ func Update(c Conf) (reconcile.Result, error) {
 	return result, nil
 }
 
+// CreateOrUpdate is a combination of `Create` and `Update`
+// functions. It creates the ConfigMap object if it is not already in
+// the cluster and updates the ConfigMap if one exists.
+func CreateOrUpdate(c Conf) (reconcile.Result, error) {
+	cm, err := GenerateConfigMap(c)
+	if err != nil {
+		return reconcile.Result{}, errors.Wrap(err, "failed to generate configmap")
+	}
+
+	var maybeUpdateFunc operation.MaybeUpdateFunc
+	if c.MaybeUpdateFunc != nil {
+		maybeUpdateFunc = c.MaybeUpdateFunc
+	} else {
+		maybeUpdateFunc = MaybeUpdate
+	}
+
+	result, err := operation.CreateOrUpdate(operation.Conf{
+		Instance:        c.Instance,
+		Reconcile:       c.Reconcile,
+		Object:          cm,
+		ExistingObject:  &corev1.ConfigMap{},
+		OwnerReference:  c.OwnerReference,
+		MaybeUpdateFunc: maybeUpdateFunc,
+		AfterUpdateFunc: c.AfterUpdateFunc,
+		AfterCreateFunc: c.AfterCreateFunc,
+	})
+	if err != nil {
+		return result, errors.Wrap(err, "failed to create or update configmap")
+	}
+
+	return result, nil
+}
+
 // Delete generates the ConfigMap as per the `Conf` struct passed
 // (only ObjectMeta of generated ConfigMap is required) and deletes it
 // from the cluster
