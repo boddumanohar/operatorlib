@@ -5,6 +5,7 @@
 [![Build Status](https://travis-ci.com/ankitrgadiya/operatorlib.svg?branch=master)](https://travis-ci.com/ankitrgadiya/operatorlib)
 [![codecov](https://codecov.io/gh/ankitrgadiya/operatorlib/branch/master/graph/badge.svg)](https://codecov.io/gh/ankitrgadiya/operatorlib)
 [![Maintainability](https://api.codeclimate.com/v1/badges/2c6f0689231cab164aad/maintainability)](https://codeclimate.com/github/ankitrgadiya/operatorlib/maintainability)
+[![BSD License](https://img.shields.io/github/license/ankitrgadiya/operatorlib)](LICENSE)
 
 While working on many Kubernetes operators, I realised that a lot of
 code is repetative across operators. Generating, creating, updating,
