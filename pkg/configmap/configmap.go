@@ -129,7 +129,6 @@ func Update(c Conf) (reconcile.Result, error) {
 		Object:          cm,
 		ExistingObject:  &corev1.ConfigMap{},
 		MaybeUpdateFunc: maybeUpdateFunc,
-		OwnerReference:  c.OwnerReference,
 		AfterUpdateFunc: c.AfterUpdateFunc,
 	})
 	if err != nil {
