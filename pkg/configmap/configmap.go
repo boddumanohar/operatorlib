@@ -91,13 +91,18 @@ func Create(c Conf) (reconcile.Result, error) {
 		return reconcile.Result{}, errors.Wrap(err, "failed to generate configmap")
 	}
 
-	return operation.Create(operation.Conf{
+	result, err := operation.Create(operation.Conf{
 		Instance:        c.Instance,
 		Reconcile:       c.Reconcile,
 		Object:          cm,
 		OwnerReference:  c.OwnerReference,
 		AfterCreateFunc: c.AfterCreateFunc,
 	})
+	if err != nil {
+		return result, errors.Wrap(err, "failed to create configmap")
+	}
+
+	return result, nil
 }
 
 // Update generates the ConfigMap as per the `Conf` struct passed and
@@ -118,7 +123,7 @@ func Update(c Conf) (reconcile.Result, error) {
 		maybeUpdateFunc = MaybeUpdate
 	}
 
-	return operation.Update(operation.Conf{
+	result, err := operation.Update(operation.Conf{
 		Instance:        c.Instance,
 		Reconcile:       c.Reconcile,
 		Object:          cm,
@@ -127,4 +132,9 @@ func Update(c Conf) (reconcile.Result, error) {
 		OwnerReference:  c.OwnerReference,
 		AfterUpdateFunc: c.AfterUpdateFunc,
 	})
+	if err != nil {
+		return result, errors.Wrap(err, "failed to update configmap")
+	}
+
+	return result, nil
 }
