@@ -137,3 +137,25 @@ func Update(c Conf) (reconcile.Result, error) {
 
 	return result, nil
 }
+
+// Delete generates the ConfigMap as per the `Conf` struct passed
+// (only ObjectMeta of generated ConfigMap is required) and deletes it
+// from the cluster
+func Delete(c Conf) (reconcile.Result, error) {
+	cm, err := GenerateConfigMap(c)
+	if err != nil {
+		return reconcile.Result{}, errors.Wrap(err, "failed to generate configmap")
+	}
+
+	result, err := operation.Delete(operation.Conf{
+		Instance:        c.Instance,
+		Reconcile:       c.Reconcile,
+		Object:          cm,
+		AfterDeleteFunc: c.AfterDeleteFunc,
+	})
+	if err != nil {
+		return result, errors.Wrap(err, "failed to delete configmap")
+	}
+
+	return result, nil
+}
