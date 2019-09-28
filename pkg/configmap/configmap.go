@@ -99,3 +99,32 @@ func Create(c Conf) (reconcile.Result, error) {
 		AfterCreateFunc: c.AfterCreateFunc,
 	})
 }
+
+// Update generates the ConfigMap as per the `Conf` struct passed and
+// compares it with the in-cluster version. If required, it updates
+// the in-cluster ConfigMap with the changes. For comparing the
+// ConfigMaps, it uses `MaybeUpdate` function by default but can also
+// use `MaybeUpdateFunc` from `Conf` if passed.
+func Update(c Conf) (reconcile.Result, error) {
+	cm, err := GenerateConfigMap(c)
+	if err != nil {
+		return reconcile.Result{}, errors.Wrap(err, "failed to generate configmap")
+	}
+
+	var maybeUpdateFunc operation.MaybeUpdateFunc
+	if c.MaybeUpdateFunc != nil {
+		maybeUpdateFunc = c.MaybeUpdateFunc
+	} else {
+		maybeUpdateFunc = MaybeUpdate
+	}
+
+	return operation.Update(operation.Conf{
+		Instance:        c.Instance,
+		Reconcile:       c.Reconcile,
+		Object:          cm,
+		ExistingObject:  &corev1.ConfigMap{},
+		MaybeUpdateFunc: maybeUpdateFunc,
+		OwnerReference:  c.OwnerReference,
+		AfterUpdateFunc: c.AfterUpdateFunc,
+	})
+}
