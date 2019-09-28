@@ -1,6 +1,9 @@
 package configmap
 
 import (
+	"reflect"
+
+	"github.com/ankitrgadiya/operatorlib/pkg/interfaces"
 	"github.com/ankitrgadiya/operatorlib/pkg/meta"
 
 	"github.com/pkg/errors"
@@ -51,4 +54,29 @@ func GenerateConfigMap(c Conf) (cm *corev1.ConfigMap, err error) {
 	}
 
 	return cm, err
+}
+
+// MaybeUpdate implements MaybeUpdateFunc for Configmap object. It
+// compares the two Configmaps being passed and update the first one
+// if required.
+func MaybeUpdate(original interfaces.Object, new interfaces.Object) (bool, error) {
+	ocm, ok := original.(*corev1.ConfigMap)
+	if !ok {
+		return false, errors.New("failed to assert the original object")
+	}
+
+	ecm, ok := new.(*corev1.ConfigMap)
+	if !ok {
+		return false, errors.New("failed to assert the existing object")
+	}
+
+	result := reflect.DeepEqual(ocm.Data, ecm.Data) && reflect.DeepEqual(ocm.BinaryData, ecm.BinaryData)
+	if result {
+		return false, nil
+	}
+
+	ocm.Data = ecm.Data
+	ocm.BinaryData = ecm.BinaryData
+
+	return true, nil
 }
