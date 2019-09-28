@@ -5,10 +5,12 @@ import (
 
 	"github.com/ankitrgadiya/operatorlib/pkg/interfaces"
 	"github.com/ankitrgadiya/operatorlib/pkg/meta"
+	"github.com/ankitrgadiya/operatorlib/pkg/operation"
 
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
 // GenerateConfigMap generates ConfigMap object as per the `Conf` struct passed
@@ -79,4 +81,21 @@ func MaybeUpdate(original interfaces.Object, new interfaces.Object) (bool, error
 	ocm.BinaryData = ecm.BinaryData
 
 	return true, nil
+}
+
+// Create generates the ConfigMap as per the `Conf` struct passed and
+// creates it in the cluster
+func Create(c Conf) (reconcile.Result, error) {
+	cm, err := GenerateConfigMap(c)
+	if err != nil {
+		return reconcile.Result{}, errors.Wrap(err, "failed to generate configmap")
+	}
+
+	return operation.Create(operation.Conf{
+		Instance:        c.Instance,
+		Reconcile:       c.Reconcile,
+		Object:          cm,
+		OwnerReference:  c.OwnerReference,
+		AfterCreateFunc: c.AfterCreateFunc,
+	})
 }
