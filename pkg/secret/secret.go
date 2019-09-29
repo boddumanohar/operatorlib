@@ -2,10 +2,12 @@ package secret
 
 import (
 	"github.com/ankitrgadiya/operatorlib/pkg/meta"
+	"github.com/ankitrgadiya/operatorlib/pkg/operation"
 
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
 // GenerateSecret generates Secret object as per the `Conf` struct
@@ -62,4 +64,25 @@ func GenerateSecret(c Conf) (s *corev1.Secret, err error) {
 		Type:       corev1.SecretType(c.Type),
 	}
 	return s, nil
+}
+
+// Create generates Secret as per the `Conf` struct passed and creates
+// it in the cluster
+func Create(c Conf) (reconcile.Result, error) {
+	s, err := GenerateSecret(c)
+	if err != nil {
+		return reconcile.Result{}, errors.Wrap(err, "failed to generate secret")
+	}
+
+	result, err := operation.Create(operation.Conf{
+		Instance:        c.Instance,
+		Reconcile:       c.Reconcile,
+		Object:          s,
+		OwnerReference:  c.OwnerReference,
+		AfterCreateFunc: c.AfterCreateFunc,
+	})
+	if err != nil {
+		return result, errors.Wrap(err, "failed to create secret")
+	}
+	return result, nil
 }
