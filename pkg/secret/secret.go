@@ -1,6 +1,9 @@
 package secret
 
 import (
+	"reflect"
+
+	"github.com/ankitrgadiya/operatorlib/pkg/interfaces"
 	"github.com/ankitrgadiya/operatorlib/pkg/meta"
 	"github.com/ankitrgadiya/operatorlib/pkg/operation"
 
@@ -64,6 +67,30 @@ func GenerateSecret(c Conf) (s *corev1.Secret, err error) {
 		Type:       corev1.SecretType(c.Type),
 	}
 	return s, nil
+}
+
+// MaybeUpdate implements MaybeUpdateFunc for Secret object. It
+// compares the two Secrets being passed and update the first one if
+// required.
+func MaybeUpdate(original interfaces.Object, new interfaces.Object) (bool, error) {
+	os, ok := original.(*corev1.Secret)
+	if !ok {
+		return false, errors.New("failed to assert the original object")
+	}
+
+	ns, ok := original.(*corev1.Secret)
+	if !ok {
+		return false, errors.New("failed to assert the new object")
+	}
+
+	result := reflect.DeepEqual(os.Data, ns.Data)
+	if result {
+		return false, nil
+	}
+
+	os.Data = ns.Data
+
+	return true, nil
 }
 
 // Create generates Secret as per the `Conf` struct passed and creates
