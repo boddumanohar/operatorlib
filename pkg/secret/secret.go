@@ -67,7 +67,6 @@ func GenerateSecret(c Conf) (s *corev1.Secret, err error) {
 		},
 		ObjectMeta: *om,
 		Data:       data,
-		StringData: stringData,
 		Type:       corev1.SecretType(c.Type),
 	}
 	return s, nil
