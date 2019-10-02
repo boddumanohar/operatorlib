@@ -55,7 +55,7 @@ func GenerateSecret(c Conf) (s *corev1.Secret, err error) {
 		}
 	}
 
-	err = mergeData(data, stringData)
+	data, err = mergeData(data, stringData)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to merge string data and data")
 	}
