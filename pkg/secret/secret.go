@@ -147,6 +147,39 @@ func Update(c Conf) (reconcile.Result, error) {
 	return result, nil
 }
 
+// CreateOrUpdate is a combination of `Create` and `Update`
+// functions. It creates the Secret object if it is not already in the
+// cluster and updates the Secret if one exists.
+func CreateOrUpdate(c Conf) (reconcile.Result, error) {
+	s, err := GenerateSecret(c)
+	if err != nil {
+		return reconcile.Result{}, errors.Wrap(err, "failed to generate secret")
+	}
+
+	var maybeUpdateFunc operation.MaybeUpdateFunc
+	if c.MaybeUpdateFunc != nil {
+		maybeUpdateFunc = c.MaybeUpdateFunc
+	} else {
+		maybeUpdateFunc = MaybeUpdate
+	}
+
+	result, err := operation.CreateOrUpdate(operation.Conf{
+		Instance:        c.Instance,
+		Reconcile:       c.Reconcile,
+		Object:          s,
+		ExistingObject:  &corev1.Secret{},
+		OwnerReference:  c.OwnerReference,
+		MaybeUpdateFunc: maybeUpdateFunc,
+		AfterUpdateFunc: c.AfterUpdateFunc,
+		AfterCreateFunc: c.AfterCreateFunc,
+	})
+	if err != nil {
+		return result, errors.Wrap(err, "failed to create or update secret")
+	}
+
+	return result, nil
+}
+
 // Delete generates the Secret as per the `Conf` struct passed (only
 // ObjectMeta of generated Secret is required) and deletes it from the
 // cluster
