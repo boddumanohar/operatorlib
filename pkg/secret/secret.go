@@ -113,3 +113,36 @@ func Create(c Conf) (reconcile.Result, error) {
 	}
 	return result, nil
 }
+
+// Update generates the Secret as per the `Conf` struct passed and
+// compares it with the in-cluster version. If required, it updates
+// the in-cluster Secret with the changes. For comparing the Secrets,
+// it uses `MaybeUpdate` function by default but can also use
+// `MaybeUpdateFunc` from `Conf` if passed.
+func Update(c Conf) (reconcile.Result, error) {
+	s, err := GenerateSecret(c)
+	if err != nil {
+		return reconcile.Result{}, errors.Wrap(err, "failed to generate secret")
+	}
+
+	var maybeUpdateFunc operation.MaybeUpdateFunc
+	if c.MaybeUpdateFunc != nil {
+		maybeUpdateFunc = c.MaybeUpdateFunc
+	} else {
+		maybeUpdateFunc = MaybeUpdate
+	}
+
+	result, err := operation.Update(operation.Conf{
+		Instance:        c.Instance,
+		Reconcile:       c.Reconcile,
+		Object:          s,
+		ExistingObject:  &corev1.Secret{},
+		MaybeUpdateFunc: maybeUpdateFunc,
+		AfterUpdateFunc: c.AfterUpdateFunc,
+	})
+	if err != nil {
+		return result, errors.Wrap(err, "failed to update secret")
+	}
+
+	return result, nil
+}
