@@ -61,6 +61,10 @@ func GenerateSecret(c Conf) (s *corev1.Secret, err error) {
 	}
 
 	s = &corev1.Secret{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Secret",
+			APIVersion: "v1",
+		},
 		ObjectMeta: *om,
 		Data:       data,
 		StringData: stringData,
