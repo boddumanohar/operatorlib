@@ -146,3 +146,25 @@ func Update(c Conf) (reconcile.Result, error) {
 
 	return result, nil
 }
+
+// Delete generates the Secret as per the `Conf` struct passed (only
+// ObjectMeta of generated Secret is required) and deletes it from the
+// cluster
+func Delete(c Conf) (reconcile.Result, error) {
+	s, err := GenerateSecret(c)
+	if err != nil {
+		return reconcile.Result{}, errors.Wrap(err, "failed to generate secret")
+	}
+
+	result, err := operation.Delete(operation.Conf{
+		Instance:        c.Instance,
+		Reconcile:       c.Reconcile,
+		Object:          s,
+		AfterDeleteFunc: c.AfterDeleteFunc,
+	})
+	if err != nil {
+		return result, errors.Wrap(err, "failed to delete secret")
+	}
+
+	return result, nil
+}
