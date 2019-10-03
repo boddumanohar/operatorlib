@@ -139,3 +139,41 @@ func TestGenerateSecret(t *testing.T) {
 		assert.Equal(t, expected, result)
 	})
 }
+
+func TestMaybeUpdate(t *testing.T) {
+	t.Run("bad parameters", func(t *testing.T) {
+		t.Run("bad original object", func(t *testing.T) {
+			result, err := secret.MaybeUpdate(&mocks.MockObject{}, &corev1.Secret{})
+			assert.Error(t, err)
+			assert.False(t, result)
+		})
+		t.Run("bad new object", func(t *testing.T) {
+			result, err := secret.MaybeUpdate(&corev1.Secret{}, &mocks.MockObject{})
+			assert.Error(t, err)
+			assert.False(t, result)
+		})
+	})
+	t.Run("compare secrets", func(t *testing.T) {
+		t.Run("empty secrets", func(t *testing.T) {
+			result, err := secret.MaybeUpdate(&corev1.Secret{}, &corev1.Secret{})
+			assert.NoError(t, err)
+			assert.False(t, result)
+		})
+		t.Run("up-to-date secrets", func(t *testing.T) {
+			result, err := secret.MaybeUpdate(
+				&corev1.Secret{Data: map[string][]byte{"key": []byte("value")}},
+				&corev1.Secret{Data: map[string][]byte{"key": []byte("value")}},
+			)
+			assert.NoError(t, err)
+			assert.False(t, result)
+		})
+		t.Run("update data in secret", func(t *testing.T) {
+			existingSecret := &corev1.Secret{Data: map[string][]byte{"key": []byte("value")}}
+			newSecret := &corev1.Secret{Data: map[string][]byte{"key": []byte("new-value")}}
+			result, err := secret.MaybeUpdate(existingSecret, newSecret)
+			assert.NoError(t, err)
+			assert.True(t, result)
+			assert.Equal(t, existingSecret, newSecret)
+		})
+	})
+}
