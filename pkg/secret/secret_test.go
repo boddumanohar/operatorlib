@@ -27,7 +27,7 @@ func mockSetup(ctrl *gomock.Controller) (i *mocks.MockObject, r *mocks.MockRecon
 	i.EXPECT().GetUID().Return(types.UID("199bd7a8-b72a-4411-b55e-91096769e58f")).AnyTimes()
 
 	secret := &corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{Name: "test-existing-secret", Namespace: "test"},
+		ObjectMeta: metav1.ObjectMeta{Name: "test-existing-secret", Namespace: "test-namespace"},
 		Data: map[string][]byte{
 			"key1": []byte("value1"),
 			"key2": []byte("value2"),
@@ -216,5 +216,106 @@ func TestCreate(t *testing.T) {
 		secret := &corev1.Secret{}
 		err = client.Get(context.TODO(), types.NamespacedName{Name: "test-secret", Namespace: "test-namespace"}, secret)
 		assert.NoError(t, err)
+	})
+}
+
+func TestUpdate(t *testing.T) {
+	controller := gomock.NewController(t)
+	defer controller.Finish()
+
+	t.Run("failed to generate", func(t *testing.T) {
+		_, err := secret.Update(secret.Conf{GenDataFunc: func(interfaces.Object) (map[string][]byte, error) {
+			return nil, errors.New("test error")
+		}})
+		assert.Error(t, err)
+	})
+	t.Run("failed to update", func(t *testing.T) {
+		i, r := mockSetup(controller)
+		_, err := secret.Update(secret.Conf{
+			Instance:  i,
+			Reconcile: r,
+			AfterUpdateFunc: func(interfaces.Object, interfaces.Reconcile) (reconcile.Result, error) {
+				return reconcile.Result{}, errors.New("test error")
+			},
+		})
+		assert.Error(t, err)
+	})
+	t.Run("secret do not exist", func(t *testing.T) {
+		i, r := mockSetup(controller)
+		_, err := secret.Update(secret.Conf{
+			Instance:  i,
+			Reconcile: r,
+			Name:      "test-secret",
+			Namespace: "test-namespace",
+		})
+		assert.Error(t, err)
+	})
+	t.Run("secret do not exist", func(t *testing.T) {
+		i, r := mockSetup(controller)
+		_, err := secret.Update(secret.Conf{
+			Instance:  i,
+			Reconcile: r,
+			Name:      "test-secret",
+			Namespace: "test-namespace",
+		})
+		assert.Error(t, err)
+	})
+	t.Run("update secret with custom maybeupdate", func(t *testing.T) {
+		i, r := mockSetup(controller)
+		client := r.GetClient()
+
+		_, err := secret.Update(secret.Conf{
+			Instance:        i,
+			Reconcile:       r,
+			Name:            "test-existing-secret",
+			Namespace:       "test-namespace",
+			MaybeUpdateFunc: func(interfaces.Object, interfaces.Object) (bool, error) { return true, nil },
+		})
+		assert.NoError(t, err)
+
+		expected := &corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{Name: "test-existing-secret", Namespace: "test-namespace"},
+			Data: map[string][]byte{
+				"key1": []byte("value1"),
+				"key2": []byte("value2"),
+			},
+		}
+		secret := &corev1.Secret{}
+		err = client.Get(context.TODO(), types.NamespacedName{Name: "test-existing-secret", Namespace: "test-namespace"}, secret)
+		assert.NoError(t, err)
+		assert.Equal(t, expected, secret)
+	})
+	t.Run("failed to update secret with custom maybeupdate", func(t *testing.T) {
+		i, r := mockSetup(controller)
+		_, err := secret.Update(secret.Conf{
+			Instance:  i,
+			Reconcile: r,
+			Name:      "test-existing-secret",
+			Namespace: "test-namespace",
+			MaybeUpdateFunc: func(interfaces.Object, interfaces.Object) (bool, error) {
+				return false, errors.New("test error")
+			},
+		})
+		assert.Error(t, err)
+	})
+	t.Run("update the secret", func(t *testing.T) {
+		i, r := mockSetup(controller)
+		client := r.GetClient()
+
+		_, err := secret.Update(secret.Conf{
+			Instance:  i,
+			Reconcile: r,
+			Name:      "test-existing-secret",
+			Namespace: "test-namespace",
+		})
+		assert.NoError(t, err)
+
+		expected := &corev1.Secret{ObjectMeta: metav1.ObjectMeta{
+			Name: "test-existing-secret", Namespace: "test-namespace",
+		}}
+		secret := &corev1.Secret{}
+		err = client.Get(context.TODO(), types.NamespacedName{Name: "test-existing-secret", Namespace: "test-namespace"}, secret)
+		assert.NoError(t, err)
+		assert.Equal(t, expected, secret)
 	})
 }
