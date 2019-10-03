@@ -250,16 +250,6 @@ func TestUpdate(t *testing.T) {
 		})
 		assert.Error(t, err)
 	})
-	t.Run("secret do not exist", func(t *testing.T) {
-		i, r := mockSetup(controller)
-		_, err := secret.Update(secret.Conf{
-			Instance:  i,
-			Reconcile: r,
-			Name:      "test-secret",
-			Namespace: "test-namespace",
-		})
-		assert.Error(t, err)
-	})
 	t.Run("update secret with custom maybeupdate", func(t *testing.T) {
 		i, r := mockSetup(controller)
 		client := r.GetClient()
