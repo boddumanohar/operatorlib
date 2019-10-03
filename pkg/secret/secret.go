@@ -81,7 +81,7 @@ func MaybeUpdate(original interfaces.Object, new interfaces.Object) (bool, error
 		return false, errors.New("failed to assert the original object")
 	}
 
-	ns, ok := original.(*corev1.Secret)
+	ns, ok := new.(*corev1.Secret)
 	if !ok {
 		return false, errors.New("failed to assert the new object")
 	}
