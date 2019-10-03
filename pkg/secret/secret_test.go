@@ -1,6 +1,7 @@
 package secret_test
 
 import (
+	"context"
 	"errors"
 	"testing"
 
@@ -17,6 +18,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
 func mockSetup(ctrl *gomock.Controller) (i *mocks.MockObject, r *mocks.MockReconcile) {
@@ -175,5 +177,44 @@ func TestMaybeUpdate(t *testing.T) {
 			assert.True(t, result)
 			assert.Equal(t, existingSecret, newSecret)
 		})
+	})
+}
+
+func TestCreate(t *testing.T) {
+	controller := gomock.NewController(t)
+	defer controller.Finish()
+
+	t.Run("failed to generate", func(t *testing.T) {
+		_, err := secret.Create(secret.Conf{GenDataFunc: func(interfaces.Object) (map[string][]byte, error) {
+			return nil, errors.New("test error")
+		}})
+		assert.Error(t, err)
+	})
+	t.Run("failed to create", func(t *testing.T) {
+		i, r := mockSetup(controller)
+		_, err := secret.Create(secret.Conf{
+			Instance:  i,
+			Reconcile: r,
+			AfterCreateFunc: func(interfaces.Object, interfaces.Reconcile) (reconcile.Result, error) {
+				return reconcile.Result{}, errors.New("test error")
+			},
+		})
+		assert.Error(t, err)
+	})
+	t.Run("create secret", func(t *testing.T) {
+		i, r := mockSetup(controller)
+		client := r.GetClient()
+
+		_, err := secret.Create(secret.Conf{
+			Instance:  i,
+			Reconcile: r,
+			Name:      "test-secret",
+			Namespace: "test-namespace",
+		})
+		assert.NoError(t, err)
+
+		secret := &corev1.Secret{}
+		err = client.Get(context.TODO(), types.NamespacedName{Name: "test-secret", Namespace: "test-namespace"}, secret)
+		assert.NoError(t, err)
 	})
 }
