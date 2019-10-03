@@ -319,3 +319,79 @@ func TestUpdate(t *testing.T) {
 		assert.Equal(t, expected, secret)
 	})
 }
+
+func TestDelete(t *testing.T) {
+	controller := gomock.NewController(t)
+	defer controller.Finish()
+
+	t.Run("failed to generate", func(t *testing.T) {
+		_, err := secret.Delete(secret.Conf{GenDataFunc: func(interfaces.Object) (map[string][]byte, error) {
+			return nil, errors.New("test error")
+		}})
+		assert.Error(t, err)
+	})
+	t.Run("delete non-existing secret", func(t *testing.T) {
+		i, r := mockSetup(controller)
+		_, err := secret.Delete(secret.Conf{
+			Instance:  i,
+			Reconcile: r,
+			Name:      "test-secret",
+			Namespace: "test-namespace",
+		})
+		assert.NoError(t, err)
+	})
+	t.Run("delete existing secret", func(t *testing.T) {
+		i, r := mockSetup(controller)
+		client := r.GetClient()
+
+		_, err := secret.Delete(secret.Conf{
+			Instance:  i,
+			Reconcile: r,
+			Name:      "test-existing-secret",
+			Namespace: "test-namespace",
+		})
+		assert.NoError(t, err)
+
+		secret := &corev1.Secret{}
+		err = client.Get(context.TODO(), types.NamespacedName{Name: "test-existing-secret", Namespace: "test-namespace"}, secret)
+		assert.Error(t, err)
+	})
+	t.Run("delete existing secret with after delete function", func(t *testing.T) {
+		i, r := mockSetup(controller)
+		client := r.GetClient()
+
+		_, err := secret.Delete(secret.Conf{
+			Instance:  i,
+			Reconcile: r,
+			Name:      "test-existing-secret",
+			Namespace: "test-namespace",
+			AfterDeleteFunc: func(interfaces.Object, interfaces.Reconcile) (reconcile.Result, error) {
+				return reconcile.Result{}, nil
+			},
+		})
+		assert.NoError(t, err)
+
+		secret := &corev1.Secret{}
+		err = client.Get(context.TODO(), types.NamespacedName{Name: "test-existing-secret", Namespace: "test-namespace"}, secret)
+		assert.Error(t, err)
+	})
+	t.Run("delete existing secret with failed after delete function", func(t *testing.T) {
+		i, r := mockSetup(controller)
+		client := r.GetClient()
+
+		_, err := secret.Delete(secret.Conf{
+			Instance:  i,
+			Reconcile: r,
+			Name:      "test-existing-secret",
+			Namespace: "test-namespace",
+			AfterDeleteFunc: func(interfaces.Object, interfaces.Reconcile) (reconcile.Result, error) {
+				return reconcile.Result{}, errors.New("test error")
+			},
+		})
+		assert.Error(t, err)
+
+		secret := &corev1.Secret{}
+		err = client.Get(context.TODO(), types.NamespacedName{Name: "test-existing-secret", Namespace: "test-namespace"}, secret)
+		assert.Error(t, err)
+	})
+}
