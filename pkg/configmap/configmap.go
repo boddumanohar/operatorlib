@@ -67,18 +67,18 @@ func MaybeUpdate(original interfaces.Object, new interfaces.Object) (bool, error
 		return false, errors.New("failed to assert the original object")
 	}
 
-	ecm, ok := new.(*corev1.ConfigMap)
+	ncm, ok := new.(*corev1.ConfigMap)
 	if !ok {
 		return false, errors.New("failed to assert the existing object")
 	}
 
-	result := reflect.DeepEqual(ocm.Data, ecm.Data) && reflect.DeepEqual(ocm.BinaryData, ecm.BinaryData)
+	result := reflect.DeepEqual(ocm.Data, ncm.Data) && reflect.DeepEqual(ocm.BinaryData, ncm.BinaryData)
 	if result {
 		return false, nil
 	}
 
-	ocm.Data = ecm.Data
-	ocm.BinaryData = ecm.BinaryData
+	ocm.Data = ncm.Data
+	ocm.BinaryData = ncm.BinaryData
 
 	return true, nil
 }
