@@ -320,6 +320,110 @@ func TestUpdate(t *testing.T) {
 	})
 }
 
+func TestCreateOrUpdate(t *testing.T) {
+	controller := gomock.NewController(t)
+	defer controller.Finish()
+
+	t.Run("failed to generate", func(t *testing.T) {
+		_, err := secret.CreateOrUpdate(secret.Conf{GenDataFunc: func(interfaces.Object) (map[string][]byte, error) {
+			return nil, errors.New("test error")
+		}})
+		assert.Error(t, err)
+	})
+	t.Run("failed to create new secret", func(t *testing.T) {
+		i, r := mockSetup(controller)
+
+		_, err := secret.CreateOrUpdate(secret.Conf{
+			Instance:  i,
+			Reconcile: r,
+			AfterCreateFunc: func(interfaces.Object, interfaces.Reconcile) (reconcile.Result, error) {
+				return reconcile.Result{}, errors.New("test error")
+			},
+		})
+		assert.Error(t, err)
+	})
+	t.Run("create new secret", func(t *testing.T) {
+		i, r := mockSetup(controller)
+		client := r.GetClient()
+
+		_, err := secret.CreateOrUpdate(secret.Conf{
+			Instance:  i,
+			Reconcile: r,
+			Name:      "test-secret",
+			Namespace: "test-namespace",
+		})
+		assert.NoError(t, err)
+
+		expected := &corev1.Secret{
+			TypeMeta:   metav1.TypeMeta{Kind: "Secret", APIVersion: "v1"},
+			ObjectMeta: metav1.ObjectMeta{Name: "test-secret", Namespace: "test-namespace"},
+		}
+		secret := &corev1.Secret{}
+		err = client.Get(context.TODO(), types.NamespacedName{Name: "test-secret", Namespace: "test-namespace"}, secret)
+		assert.NoError(t, err)
+		assert.Equal(t, expected, secret)
+	})
+	t.Run("update existing secret", func(t *testing.T) {
+		i, r := mockSetup(controller)
+		client := r.GetClient()
+
+		_, err := secret.CreateOrUpdate(secret.Conf{
+			Instance:  i,
+			Reconcile: r,
+			Name:      "test-existing-secret",
+			Namespace: "test-namespace",
+		})
+		assert.NoError(t, err)
+
+		expected := &corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: "test-existing-secret", Namespace: "test-namespace"}}
+		secret := &corev1.Secret{}
+		err = client.Get(context.TODO(), types.NamespacedName{Name: "test-existing-secret", Namespace: "test-namespace"}, secret)
+		assert.NoError(t, err)
+		assert.Equal(t, expected, secret)
+	})
+	t.Run("update existing secret with custom maybeupdate function", func(t *testing.T) {
+		i, r := mockSetup(controller)
+		client := r.GetClient()
+
+		_, err := secret.CreateOrUpdate(secret.Conf{
+			Instance:  i,
+			Reconcile: r,
+			Name:      "test-existing-secret",
+			Namespace: "test-namespace",
+			MaybeUpdateFunc: func(interfaces.Object, interfaces.Object) (bool, error) {
+				return true, nil
+			},
+		})
+		assert.NoError(t, err)
+
+		expected := &corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{Name: "test-existing-secret", Namespace: "test-namespace"},
+			Data: map[string][]byte{
+				"key1": []byte("value1"),
+				"key2": []byte("value2"),
+			},
+		}
+		secret := &corev1.Secret{}
+		err = client.Get(context.TODO(), types.NamespacedName{Name: "test-existing-secret", Namespace: "test-namespace"}, secret)
+		assert.NoError(t, err)
+		assert.Equal(t, expected, secret)
+	})
+	t.Run("update existing secret with failed custom maybeupdate function", func(t *testing.T) {
+		i, r := mockSetup(controller)
+
+		_, err := secret.CreateOrUpdate(secret.Conf{
+			Instance:  i,
+			Reconcile: r,
+			Name:      "test-existing-secret",
+			Namespace: "test-namespace",
+			MaybeUpdateFunc: func(interfaces.Object, interfaces.Object) (bool, error) {
+				return false, errors.New("test error")
+			},
+		})
+		assert.Error(t, err)
+	})
+}
+
 func TestDelete(t *testing.T) {
 	controller := gomock.NewController(t)
 	defer controller.Finish()
