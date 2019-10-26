@@ -4,7 +4,12 @@ import (
 	"github.com/ankitrgadiya/operatorlib/pkg/interfaces"
 	"github.com/ankitrgadiya/operatorlib/pkg/meta"
 	"github.com/ankitrgadiya/operatorlib/pkg/operation"
+
+	corev1 "k8s.io/api/core/v1"
 )
+
+// GenSecretFunc defiens a function which generates Service object.
+type GenSecretFunc func(Conf) (*corev1.Secret, error)
 
 // GenDataFunc defines a function which generates map of string to
 // byte slice for `Data` field in Secret object
@@ -46,6 +51,11 @@ type Conf struct {
 	operation.AfterUpdateFunc
 	// AfterDeleteFunc hook is called after deleting the Secret
 	operation.AfterDeleteFunc
+	// GenSecretFunc defines a function to generate Secret object. The
+	// package comes with a default generate function. This field can
+	// be used to override the default function which is used by the
+	// operation functions.
+	GenSecretFunc
 	// GenDataFunc defines a function to generate data for Secret
 	GenDataFunc
 	// GenBinaryDataFunc defines a function to generate binary data
