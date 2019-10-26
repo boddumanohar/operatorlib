@@ -190,6 +190,12 @@ func TestCreate(t *testing.T) {
 		}})
 		assert.Error(t, err)
 	})
+	t.Run("failed to generate using custom generator function", func(t *testing.T) {
+		_, err := secret.Create(secret.Conf{GenSecretFunc: func(secret.Conf) (*corev1.Secret, error) {
+			return nil, errors.New("test error")
+		}})
+		assert.Error(t, err)
+	})
 	t.Run("failed to create", func(t *testing.T) {
 		i, r := mockSetup(controller)
 		_, err := secret.Create(secret.Conf{
@@ -225,6 +231,12 @@ func TestUpdate(t *testing.T) {
 
 	t.Run("failed to generate", func(t *testing.T) {
 		_, err := secret.Update(secret.Conf{GenDataFunc: func(interfaces.Object) (map[string][]byte, error) {
+			return nil, errors.New("test error")
+		}})
+		assert.Error(t, err)
+	})
+	t.Run("failed to generate using custom generator function", func(t *testing.T) {
+		_, err := secret.Update(secret.Conf{GenSecretFunc: func(secret.Conf) (*corev1.Secret, error) {
 			return nil, errors.New("test error")
 		}})
 		assert.Error(t, err)
@@ -316,6 +328,12 @@ func TestCreateOrUpdate(t *testing.T) {
 
 	t.Run("failed to generate", func(t *testing.T) {
 		_, err := secret.CreateOrUpdate(secret.Conf{GenDataFunc: func(interfaces.Object) (map[string][]byte, error) {
+			return nil, errors.New("test error")
+		}})
+		assert.Error(t, err)
+	})
+	t.Run("failed to generate using custom generator function", func(t *testing.T) {
+		_, err := secret.CreateOrUpdate(secret.Conf{GenSecretFunc: func(secret.Conf) (*corev1.Secret, error) {
 			return nil, errors.New("test error")
 		}})
 		assert.Error(t, err)
@@ -420,6 +438,12 @@ func TestDelete(t *testing.T) {
 
 	t.Run("failed to generate", func(t *testing.T) {
 		_, err := secret.Delete(secret.Conf{GenDataFunc: func(interfaces.Object) (map[string][]byte, error) {
+			return nil, errors.New("test error")
+		}})
+		assert.Error(t, err)
+	})
+	t.Run("failed to generate using custom generator function", func(t *testing.T) {
+		_, err := secret.Delete(secret.Conf{GenSecretFunc: func(secret.Conf) (*corev1.Secret, error) {
 			return nil, errors.New("test error")
 		}})
 		assert.Error(t, err)

@@ -4,7 +4,12 @@ import (
 	"github.com/ankitrgadiya/operatorlib/pkg/interfaces"
 	"github.com/ankitrgadiya/operatorlib/pkg/meta"
 	"github.com/ankitrgadiya/operatorlib/pkg/operation"
+
+	corev1 "k8s.io/api/core/v1"
 )
+
+// GenConfigMapFunc defines a function which generates ConfigMap.
+type GenConfigMapFunc func(Conf) (*corev1.ConfigMap, error)
 
 // GenDataFunc defines a function which generates data (string map)
 // for Configmap.
@@ -46,6 +51,12 @@ type Conf struct {
 	operation.AfterUpdateFunc
 	// AfterDeleteFunc hook is called after deleting the Configmap
 	operation.AfterDeleteFunc
+	// GenConfigMapFunc defines a function to generate the Configmap
+	// object. The package comes with default configmap generator
+	// function which is used by operation functions. By specifying
+	// this field, user can override the default function with a
+	// custom one.
+	GenConfigMapFunc
 	// GenDataFunc defines a function to generate data for Configmap
 	GenDataFunc
 	// GenBinaryDataFunc defines a function to generate binary data

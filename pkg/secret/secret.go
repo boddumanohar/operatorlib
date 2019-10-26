@@ -99,7 +99,13 @@ func MaybeUpdate(original interfaces.Object, new interfaces.Object) (bool, error
 // Create generates Secret as per the `Conf` struct passed and creates
 // it in the cluster
 func Create(c Conf) (reconcile.Result, error) {
-	s, err := GenerateSecret(c)
+	var s *corev1.Secret
+	var err error
+	if c.GenSecretFunc != nil {
+		s, err = c.GenSecretFunc(c)
+	} else {
+		s, err = GenerateSecret(c)
+	}
 	if err != nil {
 		return reconcile.Result{}, errors.Wrap(err, "failed to generate secret")
 	}
@@ -123,7 +129,13 @@ func Create(c Conf) (reconcile.Result, error) {
 // it uses `MaybeUpdate` function by default but can also use
 // `MaybeUpdateFunc` from `Conf` if passed.
 func Update(c Conf) (reconcile.Result, error) {
-	s, err := GenerateSecret(c)
+	var s *corev1.Secret
+	var err error
+	if c.GenSecretFunc != nil {
+		s, err = c.GenSecretFunc(c)
+	} else {
+		s, err = GenerateSecret(c)
+	}
 	if err != nil {
 		return reconcile.Result{}, errors.Wrap(err, "failed to generate secret")
 	}
@@ -154,7 +166,13 @@ func Update(c Conf) (reconcile.Result, error) {
 // functions. It creates the Secret object if it is not already in the
 // cluster and updates the Secret if one exists.
 func CreateOrUpdate(c Conf) (reconcile.Result, error) {
-	s, err := GenerateSecret(c)
+	var s *corev1.Secret
+	var err error
+	if c.GenSecretFunc != nil {
+		s, err = c.GenSecretFunc(c)
+	} else {
+		s, err = GenerateSecret(c)
+	}
 	if err != nil {
 		return reconcile.Result{}, errors.Wrap(err, "failed to generate secret")
 	}
@@ -187,7 +205,13 @@ func CreateOrUpdate(c Conf) (reconcile.Result, error) {
 // ObjectMeta of generated Secret is required) and deletes it from the
 // cluster
 func Delete(c Conf) (reconcile.Result, error) {
-	s, err := GenerateSecret(c)
+	var s *corev1.Secret
+	var err error
+	if c.GenSecretFunc != nil {
+		s, err = c.GenSecretFunc(c)
+	} else {
+		s, err = GenerateSecret(c)
+	}
 	if err != nil {
 		return reconcile.Result{}, errors.Wrap(err, "failed to generate secret")
 	}

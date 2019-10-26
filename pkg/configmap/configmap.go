@@ -86,7 +86,13 @@ func MaybeUpdate(original interfaces.Object, new interfaces.Object) (bool, error
 // Create generates the ConfigMap as per the `Conf` struct passed and
 // creates it in the cluster
 func Create(c Conf) (reconcile.Result, error) {
-	cm, err := GenerateConfigMap(c)
+	var cm *corev1.ConfigMap
+	var err error
+	if c.GenConfigMapFunc != nil {
+		cm, err = c.GenConfigMapFunc(c)
+	} else {
+		cm, err = GenerateConfigMap(c)
+	}
 	if err != nil {
 		return reconcile.Result{}, errors.Wrap(err, "failed to generate configmap")
 	}
@@ -111,7 +117,13 @@ func Create(c Conf) (reconcile.Result, error) {
 // ConfigMaps, it uses `MaybeUpdate` function by default but can also
 // use `MaybeUpdateFunc` from `Conf` if passed.
 func Update(c Conf) (reconcile.Result, error) {
-	cm, err := GenerateConfigMap(c)
+	var cm *corev1.ConfigMap
+	var err error
+	if c.GenConfigMapFunc != nil {
+		cm, err = c.GenConfigMapFunc(c)
+	} else {
+		cm, err = GenerateConfigMap(c)
+	}
 	if err != nil {
 		return reconcile.Result{}, errors.Wrap(err, "failed to generate configmap")
 	}
@@ -142,7 +154,13 @@ func Update(c Conf) (reconcile.Result, error) {
 // functions. It creates the ConfigMap object if it is not already in
 // the cluster and updates the ConfigMap if one exists.
 func CreateOrUpdate(c Conf) (reconcile.Result, error) {
-	cm, err := GenerateConfigMap(c)
+	var cm *corev1.ConfigMap
+	var err error
+	if c.GenConfigMapFunc != nil {
+		cm, err = c.GenConfigMapFunc(c)
+	} else {
+		cm, err = GenerateConfigMap(c)
+	}
 	if err != nil {
 		return reconcile.Result{}, errors.Wrap(err, "failed to generate configmap")
 	}
@@ -175,7 +193,13 @@ func CreateOrUpdate(c Conf) (reconcile.Result, error) {
 // (only ObjectMeta of generated ConfigMap is required) and deletes it
 // from the cluster
 func Delete(c Conf) (reconcile.Result, error) {
-	cm, err := GenerateConfigMap(c)
+	var cm *corev1.ConfigMap
+	var err error
+	if c.GenConfigMapFunc != nil {
+		cm, err = c.GenConfigMapFunc(c)
+	} else {
+		cm, err = GenerateConfigMap(c)
+	}
 	if err != nil {
 		return reconcile.Result{}, errors.Wrap(err, "failed to generate configmap")
 	}
