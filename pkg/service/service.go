@@ -2,10 +2,12 @@ package service
 
 import (
 	"github.com/ankitrgadiya/operatorlib/pkg/meta"
+	"github.com/ankitrgadiya/operatorlib/pkg/operation"
 
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
 // GenerateService generates Service object as per the `Conf` struct
@@ -57,4 +59,31 @@ func GenerateService(c Conf) (s *corev1.Service, err error) {
 	}
 
 	return s, nil
+}
+
+// Create generates the Service as per the `Conf` struct passed and
+// creates it in the cluster
+func Create(c Conf) (reconcile.Result, error) {
+	var s *corev1.Service
+	var err error
+	if c.GenServiceFunc != nil {
+		s, err = c.GenServiceFunc(c)
+	} else {
+		s, err = GenerateService(c)
+	}
+	if err != nil {
+		return reconcile.Result{}, errors.Wrap(err, "failed to generate service")
+	}
+
+	result, err := operation.Create(operation.Conf{
+		Instance:        c.Instance,
+		Reconcile:       c.Reconcile,
+		Object:          s,
+		OwnerReference:  c.OwnerReference,
+		AfterCreateFunc: c.AfterCreateFunc,
+	})
+	if err != nil {
+		return result, errors.Wrap(err, "failed to create configmap")
+	}
+	return result, nil
 }
