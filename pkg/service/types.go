@@ -52,6 +52,12 @@ type Conf struct {
 	operation.AfterUpdateFunc
 	// AfterDeleteFunc hook is called after deleting the Service
 	operation.AfterDeleteFunc
+	// GenServiceFunc defines a function to generate the Service
+	// object. The package comes with default service generator
+	// function which is used by operation functions. By specifying
+	// this field, user can override the default function with a
+	// custom one.
+	GenServiceFunc
 	// GenServicePortsFunc defines a function to generate ports for
 	// the Service
 	GenServicePortsFunc
