@@ -201,6 +201,12 @@ func TestCreate(t *testing.T) {
 		}})
 		assert.Error(t, err)
 	})
+	t.Run("failed to generate using custom generator function", func(t *testing.T) {
+		_, err := configmap.Create(configmap.Conf{GenConfigMapFunc: func(configmap.Conf) (*corev1.ConfigMap, error) {
+			return nil, errors.New("test error")
+		}})
+		assert.Error(t, err)
+	})
 	t.Run("failed to create", func(t *testing.T) {
 		i, r := mockSetup(controller)
 		_, err := configmap.Create(configmap.Conf{
@@ -228,6 +234,12 @@ func TestUpdate(t *testing.T) {
 
 	t.Run("failed to generate", func(t *testing.T) {
 		_, err := configmap.Update(configmap.Conf{GenDataFunc: func(interfaces.Object) (map[string]string, error) {
+			return nil, errors.New("test error")
+		}})
+		assert.Error(t, err)
+	})
+	t.Run("failed to generate using custom generator function", func(t *testing.T) {
+		_, err := configmap.Update(configmap.Conf{GenConfigMapFunc: func(configmap.Conf) (*corev1.ConfigMap, error) {
 			return nil, errors.New("test error")
 		}})
 		assert.Error(t, err)
@@ -268,6 +280,12 @@ func TestCreateOrUpdate(t *testing.T) {
 
 	t.Run("failed to generate", func(t *testing.T) {
 		_, err := configmap.CreateOrUpdate(configmap.Conf{GenDataFunc: func(interfaces.Object) (map[string]string, error) {
+			return nil, errors.New("test error")
+		}})
+		assert.Error(t, err)
+	})
+	t.Run("failed to generate using custom generator function", func(t *testing.T) {
+		_, err := configmap.CreateOrUpdate(configmap.Conf{GenConfigMapFunc: func(configmap.Conf) (*corev1.ConfigMap, error) {
 			return nil, errors.New("test error")
 		}})
 		assert.Error(t, err)
@@ -321,6 +339,12 @@ func TestDelete(t *testing.T) {
 
 	t.Run("failed to generate", func(t *testing.T) {
 		_, err := configmap.Delete(configmap.Conf{GenDataFunc: func(interfaces.Object) (map[string]string, error) {
+			return nil, errors.New("test error")
+		}})
+		assert.Error(t, err)
+	})
+	t.Run("failed to generate using custom generator function", func(t *testing.T) {
+		_, err := configmap.Delete(configmap.Conf{GenConfigMapFunc: func(configmap.Conf) (*corev1.ConfigMap, error) {
 			return nil, errors.New("test error")
 		}})
 		assert.Error(t, err)
