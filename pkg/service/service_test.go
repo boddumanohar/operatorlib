@@ -124,3 +124,103 @@ func TestGenerateService(t *testing.T) {
 		assert.Equal(t, expected, result)
 	})
 }
+
+func TestMaybeUpdate(t *testing.T) {
+	t.Run("bad parameters", func(t *testing.T) {
+		t.Run("bad original object", func(t *testing.T) {
+			result, err := service.MaybeUpdate(&mocks.MockObject{}, &corev1.Service{})
+			assert.Error(t, err)
+			assert.False(t, result)
+		})
+		t.Run("bad new object", func(t *testing.T) {
+			result, err := service.MaybeUpdate(&corev1.Service{}, &mocks.MockObject{})
+			assert.Error(t, err)
+			assert.False(t, result)
+		})
+		t.Run("bad objects", func(t *testing.T) {
+			result, err := service.MaybeUpdate(&mocks.MockObject{}, &mocks.MockObject{})
+			assert.Error(t, err)
+			assert.False(t, result)
+		})
+	})
+	t.Run("compare services", func(t *testing.T) {
+		t.Run("empty services", func(t *testing.T) {
+			result, err := service.MaybeUpdate(&corev1.Service{}, &corev1.Service{})
+			assert.NoError(t, err)
+			assert.False(t, result)
+		})
+		t.Run("different types", func(t *testing.T) {
+			result, err := service.MaybeUpdate(
+				&corev1.Service{Spec: corev1.ServiceSpec{Type: "ClusterIP"}},
+				&corev1.Service{Spec: corev1.ServiceSpec{Type: "NodePort"}},
+			)
+			assert.Error(t, err)
+			assert.False(t, result)
+		})
+		t.Run("different number of ports", func(t *testing.T) {
+			existingService := &corev1.Service{Spec: corev1.ServiceSpec{
+				Ports: []corev1.ServicePort{
+					{Port: int32(80)},
+				},
+			}}
+			newService := &corev1.Service{Spec: corev1.ServiceSpec{
+				Ports: []corev1.ServicePort{
+					{Port: int32(80)},
+					{Port: int32(443)},
+				},
+			}}
+
+			result, err := service.MaybeUpdate(existingService, newService)
+			assert.NoError(t, err)
+			assert.True(t, result)
+			assert.Equal(t, existingService, newService)
+		})
+		t.Run("differnet ports", func(t *testing.T) {
+			existingService := &corev1.Service{Spec: corev1.ServiceSpec{
+				Ports: []corev1.ServicePort{
+					{Port: int32(80)},
+				},
+			}}
+			newService := &corev1.Service{Spec: corev1.ServiceSpec{
+				Ports: []corev1.ServicePort{
+					{Port: int32(443)},
+				},
+			}}
+
+			result, err := service.MaybeUpdate(existingService, newService)
+			assert.NoError(t, err)
+			assert.True(t, result)
+			assert.Equal(t, existingService, newService)
+		})
+		t.Run("differnet port names", func(t *testing.T) {
+			existingService := &corev1.Service{Spec: corev1.ServiceSpec{
+				Ports: []corev1.ServicePort{
+					{Port: int32(80), Name: "test1"},
+				},
+			}}
+			newService := &corev1.Service{Spec: corev1.ServiceSpec{
+				Ports: []corev1.ServicePort{
+					{Port: int32(80), Name: "test2"},
+				},
+			}}
+
+			result, err := service.MaybeUpdate(existingService, newService)
+			assert.NoError(t, err)
+			assert.True(t, result)
+			assert.Equal(t, existingService, newService)
+		})
+		t.Run("different selectors", func(t *testing.T) {
+			existingService := &corev1.Service{Spec: corev1.ServiceSpec{
+				Selector: map[string]string{"key": "value"},
+			}}
+			newService := &corev1.Service{Spec: corev1.ServiceSpec{
+				Selector: map[string]string{"key": "new-value"},
+			}}
+
+			result, err := service.MaybeUpdate(existingService, newService)
+			assert.NoError(t, err)
+			assert.True(t, result)
+			assert.Equal(t, existingService, newService)
+		})
+	})
+}
