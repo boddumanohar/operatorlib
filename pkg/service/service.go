@@ -143,3 +143,38 @@ func Create(c Conf) (reconcile.Result, error) {
 	}
 	return result, nil
 }
+
+// Update generates the Service as per the `Conf` struct passed and compares it with the in-cluster version. If required, it updates the in-cluster Service with the changes.
+func Update(c Conf) (reconcile.Result, error) {
+	var s *corev1.Service
+	var err error
+	if c.GenServiceFunc != nil {
+		s, err = c.GenServiceFunc(c)
+	} else {
+		s, err = GenerateService(c)
+	}
+	if err != nil {
+		return reconcile.Result{}, errors.Wrap(err, "failed to generate service")
+	}
+
+	var maybeUpdateFunc operation.MaybeUpdateFunc
+	if c.MaybeUpdateFunc != nil {
+		maybeUpdateFunc = c.MaybeUpdateFunc
+	} else {
+		maybeUpdateFunc = MaybeUpdate
+	}
+
+	result, err := operation.Update(operation.Conf{
+		Instance:        c.Instance,
+		Reconcile:       c.Reconcile,
+		Object:          s,
+		ExistingObject:  &corev1.Service{},
+		MaybeUpdateFunc: maybeUpdateFunc,
+		AfterUpdateFunc: c.AfterUpdateFunc,
+	})
+	if err != nil {
+		return result, errors.Wrap(err, "failed to update service")
+	}
+
+	return result, nil
+}
