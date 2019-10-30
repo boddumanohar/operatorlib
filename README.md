@@ -56,7 +56,7 @@ interface defines in `interface` package.
 
 * [x] [`Configmap`](https://godoc.org/github.com/ankitrgadiya/operatorlib/pkg/configmap)
 * [x] [`Secret`](https://godoc.org/github.com/ankitrgadiya/operatorlib/pkg/secret)
-* [ ] `Service`
+* [x] [`Service`](https://godoc.org/github.com/ankitrgadiya/operatorlib/pkg/service)
 * [ ] `Pod`
 * [ ] `Deployment`
 * [ ] `StatefulSet`
