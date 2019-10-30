@@ -201,25 +201,26 @@ func CreateOrUpdate(c Conf) (reconcile.Result, error) {
 	return result, nil
 }
 
-// Delete generates the Secret as per the `Conf` struct passed (only
-// ObjectMeta of generated Secret is required) and deletes it from the
-// cluster
+// Delete generates the ObjectMeta for Secret as per the `Conf` struct
+// passed and deletes it from the cluster
 func Delete(c Conf) (reconcile.Result, error) {
-	var s *corev1.Secret
-	var err error
-	if c.GenSecretFunc != nil {
-		s, err = c.GenSecretFunc(c)
-	} else {
-		s, err = GenerateSecret(c)
-	}
+	om, err := meta.GenerateObjectMeta(meta.Conf{
+		Instance:           c.Instance,
+		Name:               c.Name,
+		Namespace:          c.Namespace,
+		GenLabelsFunc:      c.GenLabelsFunc,
+		GenAnnotationsFunc: c.GenAnnotationsFunc,
+		GenFinalizersFunc:  c.GenFinalizersFunc,
+		AppendLabels:       c.AppendLabels,
+	})
 	if err != nil {
-		return reconcile.Result{}, errors.Wrap(err, "failed to generate secret")
+		return reconcile.Result{}, errors.Wrap(err, "failed to generate objectmeta for secret")
 	}
 
 	result, err := operation.Delete(operation.Conf{
 		Instance:        c.Instance,
 		Reconcile:       c.Reconcile,
-		Object:          s,
+		Object:          &corev1.Secret{ObjectMeta: *om},
 		AfterDeleteFunc: c.AfterDeleteFunc,
 	})
 	if err != nil {

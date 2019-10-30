@@ -189,25 +189,25 @@ func CreateOrUpdate(c Conf) (reconcile.Result, error) {
 	return result, nil
 }
 
-// Delete generates the ConfigMap as per the `Conf` struct passed
-// (only ObjectMeta of generated ConfigMap is required) and deletes it
-// from the cluster
+// Delete generates the ObjectMeta for ConfigMap as per the `Conf`
+// struct passed and deletes it from the cluster
 func Delete(c Conf) (reconcile.Result, error) {
-	var cm *corev1.ConfigMap
-	var err error
-	if c.GenConfigMapFunc != nil {
-		cm, err = c.GenConfigMapFunc(c)
-	} else {
-		cm, err = GenerateConfigMap(c)
-	}
+	om, err := meta.GenerateObjectMeta(meta.Conf{
+		Instance:           c.Instance,
+		Name:               c.Name,
+		Namespace:          c.Namespace,
+		GenLabelsFunc:      c.GenLabelsFunc,
+		GenAnnotationsFunc: c.GenAnnotationsFunc,
+		AppendLabels:       c.AppendLabels,
+	})
 	if err != nil {
-		return reconcile.Result{}, errors.Wrap(err, "failed to generate configmap")
+		return reconcile.Result{}, errors.Wrap(err, "failed to generate objectmeta for configmap")
 	}
 
 	result, err := operation.Delete(operation.Conf{
 		Instance:        c.Instance,
 		Reconcile:       c.Reconcile,
-		Object:          cm,
+		Object:          &corev1.ConfigMap{ObjectMeta: *om},
 		AfterDeleteFunc: c.AfterDeleteFunc,
 	})
 	if err != nil {
