@@ -86,7 +86,7 @@ func MaybeUpdate(original interfaces.Object, new interfaces.Object) (bool, error
 	// Service Type is immutable field and so it cannot be
 	// updated. Return error if it is different.
 	if os.Spec.Type != ns.Spec.Type {
-		return false, errors.New("type field of service object is different, hoever, it is immutable field which cannot be changed.")
+		return false, errors.New("type field of service object is different, hoever, it is immutable field which cannot be changed")
 	}
 
 	equal := func() bool {
