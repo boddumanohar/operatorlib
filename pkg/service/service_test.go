@@ -373,3 +373,42 @@ func TestCreateOrUpdate(t *testing.T) {
 		assert.NoError(t, err)
 	})
 }
+
+func TestDelete(t *testing.T) {
+	controller := gomock.NewController(t)
+	defer controller.Finish()
+
+	t.Run("failed to generate", func(t *testing.T) {
+		_, err := service.Delete(service.Conf{GenSelectorFunc: func(interfaces.Object) (map[string]string, error) {
+			return nil, errors.New("test error")
+		}})
+		assert.Error(t, err)
+	})
+	t.Run("failed to generate using custom generator function", func(t *testing.T) {
+		_, err := service.Delete(service.Conf{GenServiceFunc: func(service.Conf) (*corev1.Service, error) {
+			return nil, errors.New("test error")
+		}})
+		assert.Error(t, err)
+	})
+	t.Run("failed to delete", func(t *testing.T) {
+		i, r := mockSetup(controller)
+		_, err := service.Delete(service.Conf{
+			Instance:  i,
+			Reconcile: r,
+			AfterDeleteFunc: func(interfaces.Object, interfaces.Reconcile) (reconcile.Result, error) {
+				return reconcile.Result{}, errors.New("test error")
+			},
+		})
+		assert.Error(t, err)
+	})
+	t.Run("delete service", func(t *testing.T) {
+		i, r := mockSetup(controller)
+		_, err := service.Delete(service.Conf{
+			Name:      "test-existing-service",
+			Namespace: "test",
+			Instance:  i,
+			Reconcile: r,
+		})
+		assert.NoError(t, err)
+	})
+}
