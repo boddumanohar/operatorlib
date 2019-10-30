@@ -310,3 +310,66 @@ func TestUpdate(t *testing.T) {
 		assert.NoError(t, err)
 	})
 }
+
+func TestCreateOrUpdate(t *testing.T) {
+	controller := gomock.NewController(t)
+	defer controller.Finish()
+
+	t.Run("failed to generate", func(t *testing.T) {
+		_, err := service.CreateOrUpdate(service.Conf{GenSelectorFunc: func(interfaces.Object) (map[string]string, error) {
+			return nil, errors.New("test error")
+		}})
+		assert.Error(t, err)
+	})
+	t.Run("failed to generate using custom generator function", func(t *testing.T) {
+		_, err := service.CreateOrUpdate(service.Conf{GenServiceFunc: func(service.Conf) (*corev1.Service, error) {
+			return nil, errors.New("test error")
+		}})
+		assert.Error(t, err)
+	})
+	t.Run("failed to create", func(t *testing.T) {
+		i, r := mockSetup(controller)
+		_, err := service.CreateOrUpdate(service.Conf{
+			Instance:  i,
+			Reconcile: r,
+			AfterCreateFunc: func(interfaces.Object, interfaces.Reconcile) (reconcile.Result, error) {
+				return reconcile.Result{}, errors.New("test error")
+			},
+		})
+		assert.Error(t, err)
+	})
+	t.Run("failed to create", func(t *testing.T) {
+		i, r := mockSetup(controller)
+		_, err := service.CreateOrUpdate(service.Conf{
+			Name:      "test-existing-service",
+			Namespace: "test",
+			Type:      "ClusterIP",
+			Instance:  i,
+			Reconcile: r,
+			AfterUpdateFunc: func(interfaces.Object, interfaces.Reconcile) (reconcile.Result, error) {
+				return reconcile.Result{}, errors.New("test error")
+			},
+		})
+		assert.Error(t, err)
+	})
+	t.Run("custom maybeupdate function", func(t *testing.T) {
+		i, r := mockSetup(controller)
+		_, err := service.CreateOrUpdate(service.Conf{
+			Instance:        i,
+			Reconcile:       r,
+			MaybeUpdateFunc: func(interfaces.Object, interfaces.Object) (bool, error) { return true, nil },
+		})
+		assert.NoError(t, err)
+	})
+	t.Run("create or update service", func(t *testing.T) {
+		i, r := mockSetup(controller)
+		_, err := service.CreateOrUpdate(service.Conf{
+			Name:      "test-existing-service",
+			Namespace: "test",
+			Type:      "ClusterIP",
+			Instance:  i,
+			Reconcile: r,
+		})
+		assert.NoError(t, err)
+	})
+}
