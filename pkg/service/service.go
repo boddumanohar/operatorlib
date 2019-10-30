@@ -1,6 +1,9 @@
 package service
 
 import (
+	"reflect"
+
+	"github.com/ankitrgadiya/operatorlib/pkg/interfaces"
 	"github.com/ankitrgadiya/operatorlib/pkg/meta"
 	"github.com/ankitrgadiya/operatorlib/pkg/operation"
 
@@ -59,6 +62,59 @@ func GenerateService(c Conf) (s *corev1.Service, err error) {
 	}
 
 	return s, nil
+}
+
+// MaybeUpdate is the implementation of operation.MaybeUpdateFunc for
+// Service object. It compares two service objects and update the
+// first one if required. Note however that this does not compare both
+// services exhaustively since some fields can also be filled by the
+// API Server. If those are also compared here that everytime this
+// function is called it will always update/remove those fields. Also,
+// service type is immutable and cannot be updated so it returns error
+// if that is detected.
+func MaybeUpdate(original interfaces.Object, new interfaces.Object) (bool, error) {
+	os, ok := original.(*corev1.Service)
+	if !ok {
+		return false, errors.New("failed to assert the original object")
+	}
+
+	ns, ok := new.(*corev1.Service)
+	if !ok {
+		return false, errors.New("failed to assert the new object")
+	}
+
+	// Service Type is immutable field and so it cannot be
+	// updated. Return error if it is different.
+	if os.Spec.Type != ns.Spec.Type {
+		return false, errors.New("type field of service object is different, hoever, it is immutable field which cannot be changed.")
+	}
+
+	equal := func() bool {
+		if len(os.Spec.Ports) != len(ns.Spec.Ports) {
+			return false
+		}
+
+		for i := 0; i < len(os.Spec.Ports); i++ {
+			// Compare Name and Port of the ServicePort Object
+			if os.Spec.Ports[i].Name != ns.Spec.Ports[i].Name ||
+				os.Spec.Ports[i].Port != ns.Spec.Ports[i].Port {
+				return false
+			}
+		}
+
+		return true
+	}()
+
+	// Check if Ports and Selectors are equal
+	if equal && reflect.DeepEqual(os.Spec.Selector, ns.Spec.Selector) {
+		return false, nil
+	}
+
+	// Update Selectors and Ports of the existing service
+	os.Spec.Selector = ns.Spec.Selector
+	os.Spec.Ports = ns.Spec.Ports
+
+	return true, nil
 }
 
 // Create generates the Service as per the `Conf` struct passed and
