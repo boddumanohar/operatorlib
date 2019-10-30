@@ -338,13 +338,7 @@ func TestDelete(t *testing.T) {
 	defer controller.Finish()
 
 	t.Run("failed to generate", func(t *testing.T) {
-		_, err := configmap.Delete(configmap.Conf{GenDataFunc: func(interfaces.Object) (map[string]string, error) {
-			return nil, errors.New("test error")
-		}})
-		assert.Error(t, err)
-	})
-	t.Run("failed to generate using custom generator function", func(t *testing.T) {
-		_, err := configmap.Delete(configmap.Conf{GenConfigMapFunc: func(configmap.Conf) (*corev1.ConfigMap, error) {
+		_, err := configmap.Delete(configmap.Conf{GenLabelsFunc: func(interfaces.Object) (map[string]string, error) {
 			return nil, errors.New("test error")
 		}})
 		assert.Error(t, err)

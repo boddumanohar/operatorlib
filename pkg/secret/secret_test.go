@@ -437,13 +437,7 @@ func TestDelete(t *testing.T) {
 	defer controller.Finish()
 
 	t.Run("failed to generate", func(t *testing.T) {
-		_, err := secret.Delete(secret.Conf{GenDataFunc: func(interfaces.Object) (map[string][]byte, error) {
-			return nil, errors.New("test error")
-		}})
-		assert.Error(t, err)
-	})
-	t.Run("failed to generate using custom generator function", func(t *testing.T) {
-		_, err := secret.Delete(secret.Conf{GenSecretFunc: func(secret.Conf) (*corev1.Secret, error) {
+		_, err := secret.Delete(secret.Conf{GenLabelsFunc: func(interfaces.Object) (map[string]string, error) {
 			return nil, errors.New("test error")
 		}})
 		assert.Error(t, err)

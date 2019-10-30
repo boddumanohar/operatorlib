@@ -379,13 +379,7 @@ func TestDelete(t *testing.T) {
 	defer controller.Finish()
 
 	t.Run("failed to generate", func(t *testing.T) {
-		_, err := service.Delete(service.Conf{GenSelectorFunc: func(interfaces.Object) (map[string]string, error) {
-			return nil, errors.New("test error")
-		}})
-		assert.Error(t, err)
-	})
-	t.Run("failed to generate using custom generator function", func(t *testing.T) {
-		_, err := service.Delete(service.Conf{GenServiceFunc: func(service.Conf) (*corev1.Service, error) {
+		_, err := service.Delete(service.Conf{GenLabelsFunc: func(interfaces.Object) (map[string]string, error) {
 			return nil, errors.New("test error")
 		}})
 		assert.Error(t, err)
