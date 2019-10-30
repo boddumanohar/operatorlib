@@ -217,3 +217,31 @@ func CreateOrUpdate(c Conf) (reconcile.Result, error) {
 
 	return result, nil
 }
+
+// Delete generates the Service as per the `Conf` struct passed (only
+// ObjectMeta of the generated Service is required) and deletes it
+// from the cluster
+func Delete(c Conf) (reconcile.Result, error) {
+	var s *corev1.Service
+	var err error
+	if c.GenServiceFunc != nil {
+		s, err = c.GenServiceFunc(c)
+	} else {
+		s, err = GenerateService(c)
+	}
+	if err != nil {
+		return reconcile.Result{}, errors.Wrap(err, "failed to generate service")
+	}
+
+	result, err := operation.Delete(operation.Conf{
+		Instance:        c.Instance,
+		Reconcile:       c.Reconcile,
+		Object:          s,
+		AfterDeleteFunc: c.AfterDeleteFunc,
+	})
+	if err != nil {
+		return result, errors.Wrap(err, "failed to delete service")
+	}
+
+	return result, nil
+}
