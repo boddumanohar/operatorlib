@@ -17,7 +17,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
-	// "sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
 func mockSetup(ctrl *gomock.Controller) (i *mocks.MockObject, r *mocks.MockReconcile) {
@@ -222,5 +222,42 @@ func TestMaybeUpdate(t *testing.T) {
 			assert.True(t, result)
 			assert.Equal(t, existingService, newService)
 		})
+	})
+}
+
+func TestCreate(t *testing.T) {
+	controller := gomock.NewController(t)
+	defer controller.Finish()
+
+	t.Run("failed to generate", func(t *testing.T) {
+		_, err := service.Create(service.Conf{GenSelectorFunc: func(interfaces.Object) (map[string]string, error) {
+			return nil, errors.New("test error")
+		}})
+		assert.Error(t, err)
+	})
+	t.Run("failed to generate using custom generator function", func(t *testing.T) {
+		_, err := service.Create(service.Conf{GenServiceFunc: func(service.Conf) (*corev1.Service, error) {
+			return nil, errors.New("test error")
+		}})
+		assert.Error(t, err)
+	})
+	t.Run("failed to create", func(t *testing.T) {
+		i, r := mockSetup(controller)
+		_, err := service.Create(service.Conf{
+			Instance:  i,
+			Reconcile: r,
+			AfterCreateFunc: func(interfaces.Object, interfaces.Reconcile) (reconcile.Result, error) {
+				return reconcile.Result{}, errors.New("test error")
+			},
+		})
+		assert.Error(t, err)
+	})
+	t.Run("create service", func(t *testing.T) {
+		i, r := mockSetup(controller)
+		_, err := service.Create(service.Conf{
+			Instance:  i,
+			Reconcile: r,
+		})
+		assert.NoError(t, err)
 	})
 }
